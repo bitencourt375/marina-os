@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>sistema operacional — marina</title>
+<style>@import url("https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400;1,500&family=Jost:wght@200;300;400;500&display=swap");</style>
+
+<style>
+:root{
+  --terra:#C1533A;--terra-d:#9B3D27;--terra-l:#E8906E;--terra-bg:#FDF0EC;
+  --areia:#E8D9C5;--areia-d:#D4C0A4;
+  --creme:#FAF6F0;--creme2:#F3EDE4;--creme3:#EDE4D8;
+  --texto:#2E1E16;--muted:#7A5C4E;--hint:#B09080;--border:#DDD0C0;--card:#FDFAF6;
+  --purple:#7C6E9B;--blue:#4A6E8A;--green:#5A7A5C;--amber:#9A7340;--rose:#B5697A;
+  --r:14px;--rs:8px;
+  --sb:224px;
+  --bot-nav:64px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{height:100%;-webkit-text-size-adjust:100%}
+body{font-family:'Jost',sans-serif;font-weight:300;background:var(--creme);color:var(--texto);font-size:14px;line-height:1.65;height:100%;overflow:hidden;display:flex;flex-direction:column}
+
+/* ── LAYOUT ── */
+.app{display:flex;flex:1;overflow:hidden}
+
+/* ── SIDEBAR (desktop) ── */
+.sidebar{width:var(--sb);flex-shrink:0;background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow-y:auto;transition:transform .25s}
+.sb-top{padding:26px 20px 18px;border-bottom:1px solid var(--border);position:relative;overflow:hidden;background:linear-gradient(135deg,var(--terra-bg) 0%,var(--card) 60%)}
+.sb-arc{position:absolute;border-radius:50%;border:1.5px solid var(--areia);pointer-events:none}
+.logo-em{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:22px;font-weight:400;color:var(--texto)}
+.logo-sub{font-size:9px;font-weight:300;letter-spacing:.16em;color:var(--hint);margin-top:3px}
+.nav-sec{padding:16px 12px 4px}
+.nav-sec-ttl{font-size:9px;letter-spacing:.14em;color:var(--hint);padding:0 8px;margin-bottom:4px}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 10px;border-radius:var(--rs);cursor:pointer;font-size:13px;font-weight:300;color:var(--muted);transition:background .15s,color .15s;border:none;background:none;width:100%;text-align:left;font-family:'Jost',sans-serif}
+.nav-item:hover{background:var(--creme2);color:var(--texto)}
+.nav-item.active{background:var(--terra-bg);color:var(--terra);font-weight:400}
+.ndot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.sb-foot{margin-top:auto;padding:16px 20px;border-top:1px solid var(--border);background:var(--creme2)}
+.sb-date{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:14px;color:var(--muted)}
+
+/* ── BOTTOM NAV (mobile) ── */
+.bot-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--bot-nav);background:var(--card);border-top:1px solid var(--border);z-index:100;align-items:center;justify-content:space-around;padding:0 4px;padding-bottom:env(safe-area-inset-bottom)}
+.bn-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;flex:1;padding:8px 4px;border:none;background:none;color:var(--hint);font-family:'Jost',sans-serif;font-size:9px;font-weight:300;letter-spacing:.04em;transition:color .15s;border-radius:var(--rs)}
+.bn-item.active{color:var(--terra)}
+.bn-icon{font-size:18px;line-height:1}
+
+/* ── DRAWER (mobile sidebar) ── */
+.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(46,30,22,.3);z-index:200;opacity:0;transition:opacity .25s}
+.drawer-overlay.open{opacity:1}
+.drawer{position:fixed;left:0;top:0;bottom:0;width:260px;background:var(--card);z-index:201;transform:translateX(-100%);transition:transform .25s;overflow-y:auto;display:flex;flex-direction:column}
+.drawer.open{transform:translateX(0)}
+.drawer-close{position:absolute;top:16px;right:16px;background:none;border:none;font-size:20px;color:var(--hint);cursor:pointer}
+
+/* ── MAIN ── */
+.main{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.screen{display:none;padding:28px 32px;min-height:100%}
+.screen.active{display:block}
+
+/* ── PAGE HEADER ── */
+.ph{margin-bottom:24px}
+.ph-ey{font-size:9px;letter-spacing:.16em;color:var(--hint);margin-bottom:4px}
+.ph-title{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:30px;font-weight:400;line-height:1.1}
+.ph-sub{font-size:12px;font-weight:200;color:var(--hint);margin-top:4px}
+
+/* mobile header bar */
+.mob-header{display:none;align-items:center;justify-content:space-between;padding:14px 20px 0;margin-bottom:6px}
+.mob-logo{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:18px;color:var(--texto)}
+.mob-menu-btn{background:none;border:none;font-size:20px;color:var(--muted);cursor:pointer;padding:4px}
+
+/* ── SECTION ── */
+.sec{font-size:9px;letter-spacing:.14em;color:var(--hint);margin:22px 0 10px;display:flex;align-items:center;gap:10px}
+.sec::after{content:'';flex:1;height:1px;background:var(--border)}
+.sec:first-child{margin-top:0}
+.divl{height:1px;background:var(--border);margin:20px 0}
+
+/* ── CARD ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:18px}
+.card-sm{padding:12px 15px}
+.clbl{font-size:9px;letter-spacing:.12em;color:var(--hint);margin-bottom:6px}
+.cbig{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;font-weight:400;line-height:1}
+.cnote{font-size:11px;font-weight:200;color:var(--hint);margin-top:3px}
+.card-terra{background:var(--terra);border-color:var(--terra-d)}
+.card-terra .clbl{color:rgba(255,255,255,.6)}
+.card-terra .cbig,.card-terra .cnote{color:white}
+.card-areia{background:var(--areia);border-color:var(--areia-d)}
+
+/* ── TAG ── */
+.tag{display:inline-block;font-size:10px;font-weight:300;letter-spacing:.04em;padding:3px 10px;border-radius:99px}
+.s-and{background:#FBEEE9;color:var(--terra-d)}
+.s-plan{background:#F5EFDF;color:#7A5C20}
+.s-pau{background:var(--creme3);color:var(--hint)}
+.s-ok{background:#EDF4EE;color:#2A5028}
+.s-fut{background:var(--creme2);color:var(--hint)}
+
+/* ── PROGRESS ── */
+.pw{background:var(--creme3);border-radius:99px;height:4px;overflow:hidden}
+.pf{height:100%;background:var(--terra);border-radius:99px;transition:width .4s}
+
+/* ── GRIDS ── */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+
+/* ── TASK ROW ── */
+.tr{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--border)}
+.tr:last-child{border-bottom:none}
+.chk{width:17px;height:17px;border:1.5px solid var(--border);border-radius:3px;cursor:pointer;flex-shrink:0;display:flex;align-items:center;justify-content:center;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.chk.done{background:var(--terra);border-color:var(--terra)}
+.chk.done::after{content:'✓';font-size:10px;color:white}
+.ttxt{flex:1;font-size:13px;font-weight:300}
+.ttxt.done{text-decoration:line-through;color:var(--hint)}
+.tdel{font-size:15px;color:var(--hint);cursor:pointer;opacity:0;background:none;border:none;font-family:inherit;padding:0 4px;flex-shrink:0}
+.tr:hover .tdel{opacity:1}
+
+/* ── PROJ CARD ── */
+.pjcard{background:var(--card);border:1px solid var(--border);border-radius:var(--r);padding:16px;cursor:pointer;transition:transform .15s,border-color .2s;position:relative;overflow:hidden;-webkit-tap-highlight-color:transparent}
+.pjcard::before{content:'';position:absolute;top:-28px;right:-28px;width:75px;height:75px;border-radius:50%;border:1px solid var(--areia);pointer-events:none;transition:transform .3s}
+.pjcard:hover,.pjcard:active{transform:translateY(-1px);border-color:var(--terra)}
+.pjcard:hover::before{transform:scale(1.4)}
+.pjname{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:16px;margin-bottom:2px}
+.pjmeta{font-size:11px;font-weight:200;color:var(--muted);margin-bottom:10px}
+.pjstats{display:flex;justify-content:space-between;font-size:10px;color:var(--hint);margin-top:4px}
+
+/* ── KANBAN ── */
+.kanban{display:flex;gap:12px;overflow-x:auto;padding-bottom:8px;align-items:flex-start;-webkit-overflow-scrolling:touch}
+.kcol{flex:0 0 200px;background:var(--creme2);border-radius:var(--r);padding:13px;border:1px solid var(--border)}
+.kchd{display:flex;align-items:center;justify-content:space-between;margin-bottom:11px}
+.kctit{font-size:10px;letter-spacing:.1em;color:var(--muted);font-weight:400}
+.kccnt{font-size:10px;background:var(--card);border:1px solid var(--border);border-radius:99px;padding:1px 7px;color:var(--hint)}
+.kcard{background:var(--card);border:1px solid var(--border);border-radius:var(--rs);padding:10px 11px;margin-bottom:7px;cursor:pointer;transition:border-color .15s;-webkit-tap-highlight-color:transparent}
+.kcard:hover,.kcard:active{border-color:var(--terra)}
+.kcard.dragging{opacity:.35}
+.ktag{font-size:10px;padding:2px 8px;border-radius:99px;font-weight:300;margin-bottom:4px;display:inline-block}
+.kctxt{font-size:13px;font-weight:300;line-height:1.4}
+.khint{font-size:11px;color:var(--terra);margin-top:3px;font-weight:200}
+.kadd{width:100%;background:none;border:1px dashed var(--border);border-radius:var(--rs);padding:7px;font-size:12px;font-weight:300;color:var(--hint);cursor:pointer;margin-top:4px;font-family:'Jost',sans-serif;transition:all .15s}
+.kadd:hover{border-color:var(--terra);color:var(--terra)}
+.kform{margin-top:8px;display:none}
+.kform input,.kform select{width:100%;font-size:13px;font-weight:300;padding:7px 10px;border-radius:var(--rs);border:1px solid var(--border);background:var(--card);color:var(--texto);margin-bottom:6px;font-family:'Jost',sans-serif}
+.kbtns{display:flex;gap:6px}
+.kbtns button{flex:1;font-size:12px;font-weight:300;padding:6px;border-radius:var(--rs);border:1px solid var(--border);cursor:pointer;background:none;color:var(--texto);font-family:'Jost',sans-serif}
+.kbtns .ok{background:var(--terra);color:white;border-color:transparent}
+.kdrop{min-height:12px}
+
+/* ── PROJ DETAIL ── */
+.back-btn{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:300;letter-spacing:.06em;color:var(--hint);cursor:pointer;background:none;border:none;padding:0;margin-bottom:18px;font-family:'Jost',sans-serif;transition:color .15s}
+.back-btn:hover{color:var(--terra)}
+.pdt-name{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;font-weight:400;margin-bottom:5px}
+.mr3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:9px;margin-bottom:20px}
+.mi{background:var(--creme2);border-radius:var(--rs);padding:11px 13px}
+.milbl{font-size:9px;letter-spacing:.1em;color:var(--hint);margin-bottom:2px}
+.mival{font-size:13px;font-weight:300}
+.mival[contenteditable]{cursor:text;border-bottom:1px dashed transparent;transition:border-color .15s}
+.mival[contenteditable]:focus{outline:none;border-bottom-color:var(--terra)}
+
+/* ── CLAUDE BTN ── */
+.claude-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 16px;background:var(--texto);color:var(--creme);border:none;border-radius:99px;font-size:12px;font-weight:400;letter-spacing:.04em;cursor:pointer;font-family:'Jost',sans-serif;transition:background .15s;text-decoration:none;-webkit-tap-highlight-color:transparent}
+.claude-btn:hover{background:var(--terra-d)}
+
+/* ── NOTES ── */
+.notes-area{width:100%;min-height:80px;font-size:13px;font-weight:300;line-height:1.75;padding:10px 12px;border-radius:var(--rs);border:1px solid var(--border);background:var(--card);color:var(--texto);resize:vertical;font-family:'Jost',sans-serif}
+.notes-area:focus{outline:none;border-color:var(--terra)}
+
+/* ── ADD ROW ── */
+.addrow{display:flex;gap:8px;margin-top:10px}
+.addrow input{flex:1;font-size:13px;font-weight:300;padding:8px 11px;border-radius:var(--rs);border:1px solid var(--border);background:var(--creme2);color:var(--texto);font-family:'Jost',sans-serif}
+.addrow input:focus{outline:none;border-color:var(--terra)}
+.btn{font-size:12px;font-weight:400;padding:8px 15px;border-radius:var(--rs);border:none;cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:.04em;transition:all .15s;-webkit-tap-highlight-color:transparent}
+.btn-t{background:var(--terra);color:white}
+.btn-t:hover{background:var(--terra-d)}
+.btn-g{background:var(--creme3);color:var(--muted);border:1px solid var(--border)}
+
+/* ── HABITS ── */
+.hrow{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--border)}
+.hrow:last-child{border-bottom:none}
+.hname{font-size:13px;font-weight:300;flex:1;margin-right:8px}
+.hdays{display:flex;gap:4px}
+.hday{width:28px;height:28px;border-radius:50%;border:1px solid var(--border);background:var(--creme2);cursor:pointer;font-size:9px;color:var(--hint);display:flex;align-items:center;justify-content:center;transition:all .15s;user-select:none;-webkit-tap-highlight-color:transparent;flex-shrink:0}
+.hday.done{background:var(--terra);border-color:var(--terra);color:white}
+
+/* ── ROTINA ── */
+.rotb{background:var(--card);border:1px solid var(--border);border-radius:var(--r);overflow:hidden;margin-bottom:11px;position:relative}
+.rothd{display:flex;align-items:center;gap:12px;padding:13px 17px;border-bottom:1px solid var(--border)}
+.roticon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0}
+.rottit{font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px}
+.rottime{font-size:11px;font-weight:200;color:var(--hint);margin-top:1px}
+.rotitems{padding:10px 17px}
+.rotitem{display:flex;align-items:center;gap:9px;padding:7px 0;border-bottom:1px solid var(--border);font-size:13px;font-weight:300}
+.rotitem:last-child{border-bottom:none}
+.rotdot{width:5px;height:5px;border-radius:50%;background:var(--terra);flex-shrink:0;opacity:.65}
+
+/* ── FIN ── */
+.fbwrap{margin:14px 0 20px}
+.fblbls{display:flex;justify-content:space-between;font-size:11px;font-weight:200;color:var(--hint);margin-bottom:6px}
+.fbar{height:6px;background:var(--creme3);border-radius:99px;overflow:hidden}
+.fbfill{height:100%;background:var(--terra);border-radius:99px;transition:width .6s}
+.ftable{width:100%;border-collapse:collapse}
+.ftable th{font-size:9px;letter-spacing:.1em;color:var(--hint);font-weight:400;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border)}
+.ftable td{font-size:13px;font-weight:300;padding:9px 10px;border-bottom:1px solid var(--border)}
+.ftable tr:last-child td{border-bottom:none}
+.finput{font-size:13px;font-weight:300;padding:5px 8px;border-radius:var(--rs);border:1px solid var(--border);background:var(--creme2);color:var(--texto);width:100%;max-width:100px;font-family:'Jost',sans-serif}
+.finput:focus{outline:none;border-color:var(--terra);background:var(--card)}
+
+/* ── CHARTS ── */
+.chart-wrap{position:relative;width:100%;height:200px}
+.ssel{font-size:11px;font-weight:300;padding:4px 11px;border-radius:99px;border:none;cursor:pointer;font-family:'Jost',sans-serif;letter-spacing:.04em}
+
+/* ── INTENCAO ── */
+.int-inp{width:100%;font-size:16px;font-family:'Cormorant Garamond',serif;font-style:italic;font-weight:300;padding:8px 0;border:none;border-bottom:1px solid var(--border);background:transparent;color:var(--texto);transition:border-color .2s}
+.int-inp:focus{outline:none;border-color:var(--terra)}
+.int-inp::placeholder{color:var(--hint);font-style:italic}
+
+input,select,textarea{outline:none;font-family:'Jost',sans-serif;font-weight:300}
+input:focus,select:focus{border-color:var(--terra)!important}
+
+/* ─────────────── RESPONSIVE ─────────────── */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .bot-nav{display:flex}
+  .mob-header{display:flex}
+  .screen{padding:16px 18px 80px}
+  .g2,.g4{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr 1fr}
+  .mr3{grid-template-columns:1fr 1fr}
+  .ph-title{font-size:24px}
+  .kanban{padding-bottom:4px}
+  .kcol{flex:0 0 180px}
+  .tdel{opacity:1}
+  .hday{width:32px;height:32px}
+  .ftable{font-size:12px}
+  .ftable th,.ftable td{padding:8px 6px}
+  .finput{max-width:80px}
+  .proj-header-row{flex-direction:column;gap:10px}
+  .claude-btn{align-self:flex-start}
+}
+@media(max-width:480px){
+  .g2{grid-template-columns:1fr}
+  .g4{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:1fr}
+  .mr3{grid-template-columns:1fr}
+  .ph-title{font-size:22px}
+  .hday{width:30px;height:30px;font-size:9px}
+  .hname{font-size:12px}
+}
+@media(min-width:769px){
+  .drawer-overlay,.drawer{display:none!important}
+}
+</style>
+</head>
+<body>
+
+<!-- DRAWER OVERLAY (mobile) -->
+<div class="drawer-overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <button class="drawer-close" onclick="closeDrawer()">×</button>
+  <div class="sb-top" style="padding-top:50px">
+    <div class="sb-arc" style="width:90px;height:90px;top:-35px;right:-25px"></div>
+    <div class="logo-em">marina</div>
+    <div class="logo-sub">sistema operacional 🌿</div>
+  </div>
+  <div style="padding:12px 10px 4px">
+    <div class="nav-sec-ttl" style="padding:0 8px;margin-bottom:4px">projetos</div>
+    <button class="nav-item" onclick="openProj('TikTok Shop');closeDrawer()"><span class="ndot" style="background:#7C6E9B"></span> tiktok shop</button>
+    <button class="nav-item" onclick="openProj('POV.Mabi');closeDrawer()"><span class="ndot" style="background:var(--terra)"></span> pov.mabi</button>
+    <button class="nav-item" onclick="openProj('Venda de Sites');closeDrawer()"><span class="ndot" style="background:var(--blue)"></span> venda de sites</button>
+    <button class="nav-item" onclick="openProj('Mail Club');closeDrawer()"><span class="ndot" style="background:var(--green)"></span> mail club</button>
+    <button class="nav-item" onclick="openProj('Carmoni');closeDrawer()"><span class="ndot" style="background:var(--amber)"></span> carmoni</button>
+    <button class="nav-item" onclick="openProj('Insta da Cat');closeDrawer()"><span class="ndot" style="background:var(--rose)"></span> insta da cat</button>
+    <button class="nav-item" onclick="openProj('Nicho Pet');closeDrawer()"><span class="ndot" style="background:#B0AA9F"></span> nicho pet</button>
+  </div>
+</div>
+
+<div class="app">
+  <!-- SIDEBAR desktop -->
+  <nav class="sidebar">
+    <div class="sb-top">
+      <div class="sb-arc" style="width:100px;height:100px;top:-38px;right:-28px"></div>
+      <div class="sb-arc" style="width:58px;height:58px;top:-12px;right:8px;opacity:.4"></div>
+      <div class="logo-em">marina</div>
+      <div class="logo-sub">sistema operacional 🌿</div>
+    </div>
+    <div class="nav-sec">
+      <div class="nav-sec-ttl">principal</div>
+      <button class="nav-item active" onclick="goTo('home')"><span style="font-size:14px">◈</span> dashboard</button>
+      <button class="nav-item" onclick="goTo('graficos')"><span style="font-size:14px">◎</span> gráficos</button>
+      <button class="nav-item" onclick="goTo('rotina')"><span style="font-size:14px">◷</span> rotina</button>
+      <button class="nav-item" onclick="goTo('habitos')"><span style="font-size:14px">◉</span> hábitos</button>
+      <button class="nav-item" onclick="goTo('kanban')"><span style="font-size:14px">◫</span> tarefas</button>
+    </div>
+    <div class="nav-sec">
+      <div class="nav-sec-ttl">projetos</div>
+      <button class="nav-item" onclick="openProj('TikTok Shop')"><span class="ndot" style="background:#7C6E9B"></span> tiktok shop</button>
+      <button class="nav-item" onclick="openProj('POV.Mabi')"><span class="ndot" style="background:var(--terra)"></span> pov.mabi</button>
+      <button class="nav-item" onclick="openProj('Venda de Sites')"><span class="ndot" style="background:var(--blue)"></span> venda de sites</button>
+      <button class="nav-item" onclick="openProj('Mail Club')"><span class="ndot" style="background:var(--green)"></span> mail club</button>
+      <button class="nav-item" onclick="openProj('Carmoni')"><span class="ndot" style="background:var(--amber)"></span> carmoni</button>
+      <button class="nav-item" onclick="openProj('Insta da Cat')"><span class="ndot" style="background:var(--rose)"></span> insta da cat</button>
+      <button class="nav-item" onclick="openProj('Nicho Pet')"><span class="ndot" style="background:#B0AA9F"></span> nicho pet</button>
+    </div>
+    <div class="nav-sec">
+      <div class="nav-sec-ttl">financeiro</div>
+      <button class="nav-item" onclick="goTo('financeiro')"><span style="font-size:14px">◆</span> metas</button>
+    </div>
+    <div class="sb-foot">
+      <div class="sb-date" id="sdate"></div>
+      <div style="font-size:9px;font-weight:200;color:var(--hint);letter-spacing:.08em;margin-top:2px" id="syear"></div>
+    </div>
+  </nav>
+
+  <main class="main">
+    <!-- mobile header -->
+    <div class="mob-header">
+      <div class="mob-logo">marina 🌿</div>
+      <button class="mob-menu-btn" onclick="openDrawer()">☰</button>
+    </div>
+
+    <!-- HOME -->
+    <div id="s-home" class="screen active">
+      <div class="ph" style="position:relative">
+        <div style="position:absolute;top:-8px;right:30px;width:110px;height:110px;border-radius:50%;border:1px solid var(--areia);pointer-events:none;opacity:.5"></div>
+        <div class="ph-ey">hoje</div>
+        <div class="ph-title" id="hgreet">bom dia, marina</div>
+        <div class="ph-sub" id="hdate"></div>
+      </div>
+      <div class="sec">intenção do dia</div>
+      <div class="card" style="margin-bottom:16px;border-left:3px solid var(--terra)">
+        <input class="int-inp" id="intencao" placeholder="o que vai mover a agulha hoje..." oninput="S.intencao=this.value;save()">
+      </div>
+      <div class="sec">top 3 de hoje</div>
+      <div class="card" id="top3-list" style="margin-bottom:18px"></div>
+      <div class="sec">projetos ativos</div>
+      <div class="g2" id="home-projs" style="margin-bottom:18px"></div>
+      <div class="g2">
+        <div>
+          <div class="sec">hábitos hoje</div>
+          <div class="card" id="home-habs"></div>
+        </div>
+        <div>
+          <div class="sec">meta do mês</div>
+          <div class="card card-terra" id="home-fin" style="position:relative;overflow:hidden"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- GRÁFICOS -->
+    <div id="s-graficos" class="screen">
+      <div class="ph"><div class="ph-ey">visão geral</div><div class="ph-title">gráficos</div></div>
+      <div class="g4" id="g-stats" style="margin-bottom:20px"></div>
+      <div class="g2" style="margin-bottom:14px">
+        <div class="card"><div class="clbl">faturamento por projeto (r$)</div><div class="chart-wrap"><canvas id="chart-fat"></canvas></div></div>
+        <div class="card"><div class="clbl">progresso de tarefas (%)</div><div class="chart-wrap"><canvas id="chart-tasks"></canvas></div></div>
+      </div>
+      <div class="g2">
+        <div class="card"><div class="clbl">evolução financeira (r$)</div><div class="chart-wrap"><canvas id="chart-meses"></canvas></div></div>
+        <div class="card"><div class="clbl">hábitos hoje (%)</div><div class="chart-wrap"><canvas id="chart-habs"></canvas></div></div>
+      </div>
+    </div>
+
+    <!-- KANBAN -->
+    <div id="s-kanban" class="screen">
+      <div class="ph"><div class="ph-ey">organização</div><div class="ph-title">tarefas</div><div class="ph-sub">arraste para mover · toque para abrir projeto</div></div>
+      <div class="kanban" id="kanban-board"></div>
+    </div>
+
+    <!-- PROJ DETAIL -->
+    <div id="s-proj" class="screen">
+      <button class="back-btn" onclick="goBack()">← voltar</button>
+      <div id="proj-detail"></div>
+    </div>
+
+    <!-- HÁBITOS -->
+    <div id="s-habitos" class="screen">
+      <div class="ph"><div class="ph-ey">constância</div><div class="ph-title">hábitos</div><div class="ph-sub">semana atual</div></div>
+      <div class="card" id="habitos-card"></div>
+    </div>
+
+    <!-- ROTINA -->
+    <div id="s-rotina" class="screen">
+      <div class="ph"><div class="ph-ey">estrutura</div><div class="ph-title">rotina diária</div></div>
+      <div id="rot-blocks"></div>
+    </div>
+
+    <!-- FINANCEIRO -->
+    <div id="s-financeiro" class="screen">
+      <div class="ph"><div class="ph-ey">liberdade</div><div class="ph-title">metas financeiras</div><div class="ph-sub">r$2.000 → r$5.000 em 5 meses</div></div>
+      <div id="fin-content"></div>
+    </div>
+  </main>
+</div>
+
+<!-- BOTTOM NAV (mobile) -->
+<nav class="bot-nav">
+  <button class="bn-item active" onclick="goTo('home')" id="bn-home"><div class="bn-icon">◈</div><span>início</span></button>
+  <button class="bn-item" onclick="goTo('graficos')" id="bn-graficos"><div class="bn-icon">◎</div><span>gráficos</span></button>
+  <button class="bn-item" onclick="goTo('habitos')" id="bn-habitos"><div class="bn-icon">◉</div><span>hábitos</span></button>
+  <button class="bn-item" onclick="goTo('kanban')" id="bn-kanban"><div class="bn-icon">◫</div><span>tarefas</span></button>
+  <button class="bn-item" onclick="goTo('financeiro')" id="bn-financeiro"><div class="bn-icon">◆</div><span>metas</span></button>
+</nav>
+
+<script>
+const PC={"TikTok Shop":{dot:"#7C6E9B",bg:"#F0EDF7",txt:"#4A3E6A"},"POV.Mabi":{dot:"#C1533A",bg:"#FDF0EC",txt:"#7A3020"},"Venda de Sites":{dot:"#4A6E8A",bg:"#EBF2F7",txt:"#2A4A6A"},"Mail Club":{dot:"#5A7A5C",bg:"#EDF4EE",txt:"#2A4A2C"},"Carmoni":{dot:"#9A7340",bg:"#F7F0E6",txt:"#5A4020"},"Insta da Cat":{dot:"#B5697A",bg:"#F7EEF0",txt:"#7A3A4A"},"Nicho Pet":{dot:"#B0AA9F",bg:"#F1EFE8",txt:"#606058"},"Geral":{dot:"#B0AA9F",bg:"#F1EFE8",txt:"#606058"}};
+const STC={"Em andamento":"s-and","Planejando":"s-plan","Pausado":"s-pau","Concluído":"s-ok","Futuro":"s-fut"};
+const PCTX={"TikTok Shop":"Projeto: TikTok Shop\nObjetivo: operação de vendas online com papelaria fofa, cadernos de disco, refis e canetas.\nEstratégia: máquina de testes — volume > perfeição. Meta: 3 vídeos/dia.\nMeta financeira: R$1.500/mês em 3 meses.","POV.Mabi":"Projeto: POV.Mabi\nPerfil de conteúdo: livros, slow living, cerâmica, corpo em movimento, estética visual.\nObjetivo: construir comunidade e monetizar via Mail Club e produtos.\nEstratégia: 3 reels/semana + stories diários. Constância > perfeição.","Venda de Sites":"Projeto: Venda de Sites\nObjetivo: vender landing pages e sites premium para advogados e pequenos negócios usando IA.\nMeta: 2 clientes/mês. Ticket: R$497–800.\nDiferencial: vender percepção profissional, não site.","Mail Club":"Projeto: Mail Club\nClube mensal de correspondência física.\nTema: literatura + slow living + papelaria + experiência emocional.\nLançamento: 20 assinantes. Preço: R$29–39/mês.","Carmoni":"Projeto: Carmoni\nFunção: renda fixa (~R$1.500/mês) + laboratório de marketing e tráfego pago.\nUsar como experiência prática para os outros projetos.","Insta da Cat":"Projeto: Insta da Cat\nGestão do Instagram da Cat.\nFoco: crescimento, engajamento e estratégia de conteúdo.","Nicho Pet":"Projeto: Nicho Pet\nProjeto futuro — possível parceria com primo.\nBanco de ideias e pesquisa de tendências. Baixa prioridade."};
+
+const DEF={intencao:"",top3:[{text:"",done:false},{text:"",done:false},{text:"",done:false}],kanban:{"a fazer":[{id:1,text:"abrir tiktok shop",proj:"TikTok Shop"},{id:2,text:"gravar 3 vídeos de teste",proj:"TikTok Shop"},{id:3,text:"prospectar 5 advogados",proj:"Venda de Sites"},{id:4,text:"calcular custo da caixinha",proj:"Mail Club"},{id:5,text:"criar calendário de conteúdo",proj:"Carmoni"}],"fazendo":[{id:6,text:"definir produtos iniciais",proj:"TikTok Shop"},{id:7,text:"esboçar identidade visual",proj:"POV.Mabi"}],"feito":[{id:8,text:"definir projetos prioritários",proj:"Geral"}]},projects:{"TikTok Shop":{status:"Em andamento",meta:"caixa rápido + escala",objetivo:"r$1.500/mês em 3 meses",prazo:"3 meses",notas:"máquina de testes. volume > perfeição. 3 vídeos/dia 🌿",faturamento:0,tasks:[{id:1,text:"abrir conta tiktok business",done:false},{id:2,text:"listar e fotografar produtos",done:false},{id:3,text:"gravar 3 primeiros vídeos",done:false},{id:4,text:"abrir tiktok shop",done:false},{id:5,text:"analisar 1ª semana",done:false}]},"POV.Mabi":{status:"Em andamento",meta:"comunidade engajada",objetivo:"autoridade estética + base mail club",prazo:"contínuo",notas:"autenticidade acima de tudo. 3 reels/semana 🌿",faturamento:0,tasks:[{id:1,text:"definir identidade visual",done:false},{id:2,text:"criar calendário de conteúdo",done:false},{id:3,text:"gravar 3 reels",done:false},{id:4,text:"fazer stories hoje",done:false}]},"Venda de Sites":{status:"Em andamento",meta:"2 clientes/mês",objetivo:"r$1.000–1.600/mês",prazo:"ongoing",notas:"vender percepção profissional, não site 🌿",faturamento:0,tasks:[{id:1,text:"prospectar 5 advogados",done:false},{id:2,text:"criar template de proposta",done:false},{id:3,text:"enviar 3 propostas",done:false},{id:4,text:"fechar 1º cliente",done:false},{id:5,text:"montar portfólio",done:false}]},"Mail Club":{status:"Planejando",meta:"20 assinantes",objetivo:"receita recorrente + produto de marca",prazo:"2–3 meses",notas:"a caixinha precisa parecer um abraço 🌿",faturamento:0,tasks:[{id:1,text:"calcular custo da caixinha",done:false},{id:2,text:"definir preço",done:false},{id:3,text:"buscar fornecedores",done:false},{id:4,text:"escrever carta do mês 1",done:false},{id:5,text:"criar lista de espera",done:false}]},"Carmoni":{status:"Em andamento",meta:"renda fixa + laboratório",objetivo:"manter r$1.500/mês",prazo:"contínuo",notas:"usar como lab de marketing 🌿",faturamento:1500,tasks:[{id:1,text:"calendário de conteúdo",done:false},{id:2,text:"subir campanha de tráfego",done:false},{id:3,text:"planejar campanha sazonal",done:false}]},"Insta da Cat":{status:"Em andamento",meta:"crescimento e engajamento",objetivo:"construir presença digital",prazo:"contínuo",notas:"estratégia de conteúdo consistente 🌿",faturamento:0,tasks:[{id:1,text:"definir nicho e estética",done:false},{id:2,text:"criar calendário de posts",done:false},{id:3,text:"publicar 3x por semana",done:false}]},"Nicho Pet":{status:"Futuro",meta:"banco de ideias",objetivo:"explorar parceria com primo",prazo:"6+ meses",notas:"baixa prioridade agora 🌿",faturamento:0,tasks:[{id:1,text:"pesquisar tendências pet",done:false},{id:2,text:"listar 10 ideias de produto",done:false}]}},habitos:{items:["dormir cedo","academia","sem celular pela manhã","leitura","postar conteúdo","água","organização"],checks:{}},fin:{meses:[{nome:"mês 1",meta:2600,real:0},{nome:"mês 2",meta:3200,real:0},{nome:"mês 3",meta:3800,real:0},{nome:"mês 4",meta:4400,real:0},{nome:"mês 5",meta:5000,real:0}]}};
+
+let S,nid=200,drag=null,prevScreen='home';
+const charts={};
+function load(){try{const d=localStorage.getItem('marina_v4');S=d?JSON.parse(d):JSON.parse(JSON.stringify(DEF));}catch(e){S=JSON.parse(JSON.stringify(DEF));}}
+function save(){try{localStorage.setItem('marina_v4',JSON.stringify(S));}catch(e){}}
+load();
+if(!S.top3[0]||typeof S.top3[0]==='string') S.top3=S.top3.map(v=>typeof v==='string'?{text:v,done:false}:v);
+Object.values(S.projects).forEach(p=>{if(p.faturamento===undefined)p.faturamento=0;});
+
+function openDrawer(){const o=document.getElementById('overlay'),d=document.getElementById('drawer');o.style.display='block';d.style.display='flex';requestAnimationFrame(()=>{o.classList.add('open');d.classList.add('open');});}
+function closeDrawer(){const o=document.getElementById('overlay'),d=document.getElementById('drawer');o.classList.remove('open');d.classList.remove('open');setTimeout(()=>{o.style.display='none';d.style.display='none';},260);}
+
+function goTo(id){
+  prevScreen=id;
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.bn-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('s-'+id).classList.add('active');
+  const bn=document.getElementById('bn-'+id);if(bn)bn.classList.add('active');
+  if(id==='home')renderHome();
+  if(id==='graficos')renderGraficos();
+  if(id==='kanban')renderKanban();
+  if(id==='habitos')renderHabitos();
+  if(id==='rotina')renderRotina();
+  if(id==='financeiro')renderFin();
+  window.scrollTo&&window.scrollTo(0,0);
+  document.querySelector('.main').scrollTo(0,0);
+}
+function openProj(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.getElementById('s-proj').classList.add('active');
+  renderProjDetail(name);
+  document.querySelector('.main').scrollTo(0,0);
+}
+function goBack(){goTo(prevScreen==='proj'?'home':prevScreen);}
+
+function setupDate(){
+  const now=new Date();
+  const months=["janeiro","fevereiro","março","abril","maio","junho","julho","agosto","setembro","outubro","novembro","dezembro"];
+  const days=["domingo","segunda","terça","quarta","quinta","sexta","sábado"];
+  const h=now.getHours();
+  const gr=h<12?"bom dia":h<18?"boa tarde":"boa noite";
+  const str=`${days[now.getDay()]}, ${now.getDate()} de ${months[now.getMonth()]}`;
+  document.getElementById('hgreet').textContent=`${gr}, marina`;
+  document.getElementById('hdate').textContent=str;
+  document.getElementById('sdate').innerHTML=`<span style="font-style:italic">${str}</span>`;
+  document.getElementById('syear').textContent=now.getFullYear();
+}
+
+function renderHome(){
+  setupDate();
+  const inp=document.getElementById('intencao');
+  if(inp) inp.value=S.intencao||'';
+  const t3=document.getElementById('top3-list');
+  if(t3) t3.innerHTML=S.top3.map((v,i)=>`
+    <div class="tr">
+      <div class="chk${v.done?' done':''}" onclick="tTop3(${i})"></div>
+      <input type="text" value="${(v.text||'').replace(/"/g,'&quot;')}" placeholder="prioridade ${i+1}..."
+        style="flex:1;border:none;background:transparent;font-size:13px;font-weight:300;color:var(--texto);font-family:'Jost',sans-serif;padding:0"
+        onchange="uTop3(${i},this.value)">
+    </div>`).join('');
+  const hp=document.getElementById('home-projs');
+  if(hp){
+    const projs=Object.entries(S.projects).filter(([n])=>n!=='Nicho Pet');
+    hp.innerHTML=projs.map(([name,p])=>{
+      const c=PC[name];const done=p.tasks.filter(t=>t.done).length;const pct=p.tasks.length?Math.round(done/p.tasks.length*100):0;const sc=STC[p.status]||'s-pau';
+      return `<div class="pjcard" onclick="openProj('${name}')"><div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px"><div class="pjname">${name}</div><span class="tag ${sc}" style="font-size:9px">${p.status}</span></div><div class="pjmeta">${p.objetivo}</div><div style="margin-bottom:3px"><div class="pw"><div class="pf" style="width:${pct}%"></div></div></div><div class="pjstats"><span>${done}/${p.tasks.length}</span><span style="color:var(--terra)">${pct}%</span></div></div>`;
+    }).join('');
+  }
+  const hh=document.getElementById('home-habs');
+  const today=new Date().toDateString();
+  if(hh) hh.innerHTML=S.habitos.items.slice(0,5).map(h=>{const key=today+'_'+h;const done=S.habitos.checks[key];return `<div class="tr"><div class="chk${done?' done':''}" onclick="tHabToday('${h}')"></div><span class="ttxt${done?' done':''}">${h}</span></div>`;}).join('');
+  const hf=document.getElementById('home-fin');
+  if(hf){
+    const mes=getCurrentMes();const pct=Math.min(100,Math.round((mes.real||0)/mes.meta*100));
+    hf.innerHTML=`<div style="position:absolute;bottom:-28px;right:-22px;width:85px;height:85px;border-radius:50%;border:1.5px solid rgba(255,255,255,.12);pointer-events:none"></div><div style="font-size:9px;letter-spacing:.12em;color:rgba(255,255,255,.6);margin-bottom:5px">${mes.nome} — meta</div><div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;color:white;line-height:1">r$ ${(mes.real||0).toLocaleString('pt-BR')}</div><div style="font-size:11px;font-weight:200;color:rgba(255,255,255,.7);margin-top:2px">de r$${mes.meta.toLocaleString('pt-BR')}</div><div style="height:3px;background:rgba(255,255,255,.2);border-radius:99px;margin-top:12px;overflow:hidden"><div style="height:100%;width:${pct}%;background:white;border-radius:99px"></div></div><div style="font-size:10px;color:rgba(255,255,255,.6);margin-top:3px">${pct}% atingido</div>`;
+  }
+}
+function getCurrentMes(){const filled=S.fin.meses.filter(m=>m.real>0);return filled.length?S.fin.meses[filled.length-1]:S.fin.meses[0];}
+function tTop3(i){S.top3[i].done=!S.top3[i].done;save();renderHome();}
+function uTop3(i,v){S.top3[i].text=v;save();}
+function tHabToday(h){const key=new Date().toDateString()+'_'+h;S.habitos.checks[key]=!S.habitos.checks[key];save();renderHome();}
+
+function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+function renderGraficos(){
+  const projs=Object.entries(S.projects);
+  const total=projs.reduce((a,[,p])=>a+(p.faturamento||0),0);
+  const totalT=projs.reduce((a,[,p])=>a+p.tasks.length,0);
+  const doneT=projs.reduce((a,[,p])=>a+p.tasks.filter(t=>t.done).length,0);
+  const today=new Date().toDateString();
+  const habD=S.habitos.items.filter(h=>S.habitos.checks[today+'_'+h]).length;
+  document.getElementById('g-stats').innerHTML=`
+    <div class="card card-sm card-terra"><div class="clbl">faturamento total</div><div class="cbig">r$${total.toLocaleString('pt-BR')}</div></div>
+    <div class="card card-sm"><div class="clbl">tarefas feitas</div><div class="cbig">${doneT}/${totalT}</div></div>
+    <div class="card card-sm card-areia"><div class="clbl">hábitos hoje</div><div class="cbig">${habD}/${S.habitos.items.length}</div></div>
+    <div class="card card-sm"><div class="clbl">projetos ativos</div><div class="cbig">${projs.filter(([,p])=>p.status==='Em andamento').length}</div></div>`;
+  const bo={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{grid:{display:false},ticks:{font:{family:'Jost',size:10},color:'#B09080'}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{family:'Jost',size:10},color:'#B09080'}}}};
+  setTimeout(()=>{
+    const names=projs.map(([n])=>n);const dots=projs.map(([n])=>PC[n]?.dot||'#C1533A');
+    destroyChart('fat');const c1=document.getElementById('chart-fat');if(c1)charts['fat']=new Chart(c1,{type:'bar',data:{labels:names,datasets:[{data:projs.map(([,p])=>p.faturamento||0),backgroundColor:dots.map(d=>d+'33'),borderColor:dots,borderWidth:1.5,borderRadius:4}]},options:{...bo,plugins:{...bo.plugins,tooltip:{callbacks:{label:v=>'r$'+v.raw.toLocaleString('pt-BR')}}}}});
+    destroyChart('tasks');const c2=document.getElementById('chart-tasks');if(c2)charts['tasks']=new Chart(c2,{type:'bar',data:{labels:names,datasets:[{data:projs.map(([,p])=>p.tasks.length?Math.round(p.tasks.filter(t=>t.done).length/p.tasks.length*100):0),backgroundColor:dots.map(d=>d+'33'),borderColor:dots,borderWidth:1.5,borderRadius:4}]},options:{...bo,scales:{...bo.scales,y:{...bo.scales.y,max:100,ticks:{...bo.scales.y.ticks,callback:v=>v+'%'}}}}});
+    destroyChart('meses');const c3=document.getElementById('chart-meses');if(c3)charts['meses']=new Chart(c3,{type:'line',data:{labels:S.fin.meses.map(m=>m.nome),datasets:[{label:'meta',data:S.fin.meses.map(m=>m.meta),borderColor:'#DDD0C0',borderWidth:1.5,borderDash:[4,3],pointRadius:0,fill:false},{label:'realizado',data:S.fin.meses.map(m=>m.real||0),borderColor:'#C1533A',borderWidth:2,pointBackgroundColor:'#C1533A',pointRadius:4,fill:true,backgroundColor:'rgba(193,83,58,.06)'}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{font:{family:'Jost',size:10},color:'#B09080',boxWidth:12}}},scales:{x:{grid:{display:false},ticks:{font:{family:'Jost',size:10},color:'#B09080'}},y:{grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{family:'Jost',size:10},color:'#B09080',callback:v=>'r$'+v.toLocaleString('pt-BR')}}}}});
+    destroyChart('habs');const c4=document.getElementById('chart-habs');const today2=new Date().toDateString();const hp2=S.habitos.items.map(h=>S.habitos.checks[today2+'_'+h]?100:0);if(c4)charts['habs']=new Chart(c4,{type:'bar',data:{labels:S.habitos.items,datasets:[{data:hp2,backgroundColor:hp2.map(v=>v?'rgba(193,83,58,.25)':'rgba(176,160,159,.12)'),borderColor:hp2.map(v=>v?'#C1533A':'#DDD0C0'),borderWidth:1.5,borderRadius:4}]},options:{...bo,scales:{...bo.scales,y:{...bo.scales.y,max:100,ticks:{...bo.scales.y.ticks,callback:v=>v+'%'}}}}});
+  },100);
+}
+
+function renderKanban(){
+  const board=document.getElementById('kanban-board');board.innerHTML='';
+  Object.entries(S.kanban).forEach(([col,cards])=>{
+    const el=document.createElement('div');el.className='kcol';
+    el.innerHTML=`<div class="kchd"><span class="kctit">${col}</span><span class="kccnt">${cards.length}</span></div><div class="kdrop" id="kd-${col}"></div><button class="kadd" onclick="kShow('${col}')">+ adicionar</button><div class="kform" id="kf-${col}"><input type="text" placeholder="nova tarefa..." id="ki-${col}" onkeydown="if(event.key==='Enter')kAdd('${col}')"><select id="ks-${col}">${Object.keys(PC).map(p=>`<option>${p}</option>`).join('')}</select><div class="kbtns"><button class="ok" onclick="kAdd('${col}')">adicionar</button><button onclick="kHide('${col}')">cancelar</button></div></div>`;
+    board.appendChild(el);
+    const drop=document.getElementById('kd-'+col);
+    cards.forEach(card=>{
+      const c=PC[card.proj]||PC['Geral'];const hasP=!!S.projects[card.proj];
+      const ce=document.createElement('div');ce.className='kcard';ce.draggable=true;
+      ce.innerHTML=`<span class="ktag" style="background:${c.bg};color:${c.txt}">${card.proj}</span><div class="kctxt">${card.text}</div>${hasP?'<div class="khint">→ abrir</div>':''}`;
+      ce.addEventListener('click',()=>{if(hasP){prevScreen='kanban';openProj(card.proj);}});
+      ce.addEventListener('dragstart',()=>{drag={id:card.id,fromCol:col};setTimeout(()=>ce.classList.add('dragging'),0);});
+      ce.addEventListener('dragend',()=>ce.classList.remove('dragging'));
+      drop.appendChild(ce);
+    });
+    drop.addEventListener('dragover',e=>{e.preventDefault();drop.style.background='var(--creme3)';});
+    drop.addEventListener('dragleave',()=>{drop.style.background='';});
+    drop.addEventListener('drop',e=>{e.preventDefault();drop.style.background='';if(!drag||drag.fromCol===col)return;const idx=S.kanban[drag.fromCol].findIndex(c=>c.id===drag.id);if(idx<0)return;const[m]=S.kanban[drag.fromCol].splice(idx,1);S.kanban[col].push(m);drag=null;save();renderKanban();});
+  });
+}
+function kShow(col){document.getElementById('kf-'+col).style.display='block';document.getElementById('ki-'+col).focus();}
+function kHide(col){document.getElementById('kf-'+col).style.display='none';}
+function kAdd(col){const inp=document.getElementById('ki-'+col),sel=document.getElementById('ks-'+col);const text=inp.value.trim();if(!text)return;S.kanban[col].push({id:nid++,text,proj:sel.value});save();renderKanban();}
+
+function buildClaudeUrl(name){const ctx=PCTX[name]||`Projeto: ${name}`;return `https://claude.ai/new?q=${encodeURIComponent('Olá! Estou trabalhando no seguinte projeto:\n\n'+ctx+'\n\nPode me ajudar com estratégias e próximos passos?')}`;}
+
+function renderProjDetail(name){
+  const p=S.projects[name];const c=PC[name];const sc=STC[p.status]||'s-pau';
+  const tasks=p.tasks||[];const done=tasks.filter(t=>t.done).length;const pct=tasks.length?Math.round(done/tasks.length*100):0;
+  document.getElementById('proj-detail').innerHTML=`
+    <div class="proj-header-row" style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:10px;gap:10px;flex-wrap:wrap">
+      <div>
+        <div style="display:flex;align-items:center;gap:9px;margin-bottom:5px">
+          <span style="width:9px;height:9px;border-radius:50%;background:${c.dot};flex-shrink:0"></span>
+          <div style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:26px;font-weight:400">${name}</div>
+        </div>
+        <select class="ssel ${sc}" onchange="setPSt('${name}',this.value)">
+          ${["Em andamento","Planejando","Pausado","Concluído","Futuro"].map(s=>`<option${s===p.status?' selected':''}>${s}</option>`).join('')}
+        </select>
+      </div>
+      <a href="${buildClaudeUrl(name)}" target="_blank" class="claude-btn">abrir no claude ↗</a>
+    </div>
+    <div class="mr3">
+      <div class="mi"><div class="milbl">meta</div><div class="mival" contenteditable="true" onblur="S.projects['${name}'].meta=this.textContent;save()">${p.meta}</div></div>
+      <div class="mi"><div class="milbl">objetivo</div><div class="mival" contenteditable="true" onblur="S.projects['${name}'].objetivo=this.textContent;save()">${p.objetivo}</div></div>
+      <div class="mi"><div class="milbl">prazo</div><div class="mival" contenteditable="true" onblur="S.projects['${name}'].prazo=this.textContent;save()">${p.prazo}</div></div>
+    </div>
+    <div class="sec" style="margin-top:0">faturamento (r$)</div>
+    <input type="number" value="${p.faturamento||0}" min="0" style="font-size:22px;font-family:'Cormorant Garamond',serif;font-style:italic;border:none;border-bottom:1px solid var(--border);background:transparent;color:var(--texto);width:160px;padding:4px 0;margin-bottom:4px" onchange="S.projects['${name}'].faturamento=parseFloat(this.value)||0;save()">
+    <div class="sec">tarefas — ${done}/${tasks.length} (${pct}%)</div>
+    <div class="pw" style="margin-bottom:13px"><div class="pf" style="width:${pct}%"></div></div>
+    ${tasks.map(t=>`<div class="tr"><div class="chk${t.done?' done':''}" onclick="tPT('${name}',${t.id})"></div><span class="ttxt${t.done?' done':''}" contenteditable="true" onblur="editTask('${name}',${t.id},this.textContent)">${t.text}</span><button class="tdel" onclick="dPT('${name}',${t.id})">×</button></div>`).join('')}
+    <div class="addrow"><input type="text" id="nt-${name}" placeholder="nova tarefa..." onkeydown="if(event.key==='Enter')aPT('${name}')"><button class="btn btn-t" onclick="aPT('${name}')">+ add</button></div>
+    <div class="divl"></div>
+    <div class="sec">notas</div>
+    <textarea class="notes-area" onblur="S.projects['${name}'].notas=this.value;save()">${p.notas||''}</textarea>`;
+}
+function setPSt(name,s){S.projects[name].status=s;save();}
+function tPT(name,id){const t=S.projects[name].tasks.find(t=>t.id===id);if(t){t.done=!t.done;save();renderProjDetail(name);}}
+function dPT(name,id){S.projects[name].tasks=S.projects[name].tasks.filter(t=>t.id!==id);save();renderProjDetail(name);}
+function aPT(name){const inp=document.getElementById('nt-'+name);const text=inp.value.trim();if(!text)return;S.projects[name].tasks.push({id:nid++,text,done:false});save();renderProjDetail(name);}
+function editTask(name,id,text){const t=S.projects[name].tasks.find(t=>t.id===id);if(t&&text.trim()){t.text=text.trim();save();}}
+
+function renderHabitos(){
+  const card=document.getElementById('habitos-card');
+  const days=['d','s','t','q','q','s','s'];
+  const today=new Date();const ws=new Date(today);ws.setDate(today.getDate()-today.getDay());
+  const dates=Array.from({length:7},(_,i)=>{const d=new Date(ws);d.setDate(ws.getDate()+i);return d;});
+  card.innerHTML=`
+    <div style="display:flex;justify-content:flex-end;gap:4px;margin-bottom:10px;padding-bottom:8px;border-bottom:1px solid var(--border)">
+      ${days.map((d,i)=>`<div style="width:28px;text-align:center;font-size:9px;letter-spacing:.06em;color:${i===today.getDay()?'var(--terra)':'var(--hint)'};font-weight:${i===today.getDay()?'400':'300'}">${d}</div>`).join('')}
+    </div>
+    ${S.habitos.items.map(h=>`<div class="hrow"><span class="hname">${h}</span><div class="hdays">${dates.map(d=>{const key=d.toDateString()+'_'+h;const done=S.habitos.checks[key];return `<div class="hday${done?' done':''}" onclick="tHab('${key}')">${done?'✓':''}</div>`;}).join('')}</div></div>`).join('')}`;
+}
+function tHab(key){S.habitos.checks[key]=!S.habitos.checks[key];save();renderHabitos();}
+
+function renderRotina(){
+  const blocks=[{icon:"🌅",bg:"#FFF3E0",title:"manhã",time:"6h – 8h",items:["academia","café da manhã tranquilo","organizar o dia"]},{icon:"🔥",bg:"#FDF0EC",title:"bloco 1 — execução profunda",time:"8h – 12h",items:["criar vídeos tiktok shop","edição de conteúdo","desenvolver sites","sem celular, sem notificações"]},{icon:"📋",bg:"#EBF2EE",title:"bloco 2 — administração",time:"14h – 17h",items:["responder mensagens","uploads agendados","planejamento","prospecção"]},{icon:"🌙",bg:"#EBF0F5",title:"noite",time:"19h – 22h30",items:["leitura","conteúdo pov.mabi","planejamento leve","inspiração","dormir cedo"]}];
+  document.getElementById('rot-blocks').innerHTML=blocks.map(b=>`<div class="rotb"><div style="position:absolute;bottom:-22px;right:-18px;width:70px;height:70px;border-radius:50%;border:1px solid var(--areia);pointer-events:none"></div><div class="rothd"><div class="roticon" style="background:${b.bg}">${b.icon}</div><div><div class="rottit">${b.title}</div><div class="rottime">${b.time}</div></div></div><div class="rotitems">${b.items.map(item=>`<div class="rotitem"><span class="rotdot"></span>${item}</div>`).join('')}</div></div>`).join('');
+}
+
+function renderFin(){
+  const total=S.fin.meses.reduce((a,m)=>a+(m.real||0),0);const pct=Math.min(100,Math.round(total/5000*100));const best=Math.max(...S.fin.meses.map(m=>m.real||0));
+  document.getElementById('fin-content').innerHTML=`
+    <div class="g4" style="margin-bottom:18px">
+      <div class="card card-sm card-terra"><div class="clbl">início</div><div class="cbig">r$2k</div></div>
+      <div class="card card-sm"><div class="clbl">meta final</div><div class="cbig">r$5k</div></div>
+      <div class="card card-sm card-areia"><div class="clbl">melhor mês</div><div class="cbig">${best>0?'r$'+best.toLocaleString('pt-BR'):'—'}</div></div>
+      <div class="card card-sm"><div class="clbl">progresso</div><div class="cbig">${pct}%</div></div>
+    </div>
+    <div class="fbwrap"><div class="fblbls"><span>r$2.000</span><span>r$5.000</span></div><div class="fbar"><div class="fbfill" style="width:${pct}%"></div></div></div>
+    <div class="card" style="margin-top:8px;overflow-x:auto">
+      <table class="ftable">
+        <thead><tr><th>mês</th><th>meta</th><th>realizado</th><th>status</th></tr></thead>
+        <tbody>${S.fin.meses.map((m,i)=>{const ok=m.real>=m.meta,has=m.real>0;return `<tr><td style="font-family:'Cormorant Garamond',serif;font-style:italic;font-size:15px">${m.nome}</td><td style="color:var(--hint)">r$${m.meta.toLocaleString('pt-BR')}</td><td><input class="finput" type="number" value="${m.real||''}" placeholder="0" onchange="uFin(${i},this.value)" min="0"></td><td>${has?(ok?'<span class="tag s-ok">✓</span>':'<span class="tag s-and">em progresso</span>'):'<span style="color:var(--hint);font-size:11px">—</span>'}</td></tr>`;}).join('')}</tbody>
+      </table>
+    </div>`;
+}
+function uFin(i,v){S.fin.meses[i].real=parseFloat(v)||0;save();}
+
+
+// ── MINI CHART ENGINE (no dependencies) ──────────────────────────────
+const Chart = (function(){
+  function drawChart(canvas, config) {
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.offsetWidth || 300;
+    const H = canvas.offsetHeight || 200;
+    canvas.width = W * window.devicePixelRatio;
+    canvas.height = H * window.devicePixelRatio;
+    ctx.scale(window.devicePixelRatio, window.devicePixelRatio);
+    const type = config.type;
+    const data = config.data;
+    const opts = config.options || {};
+    ctx.clearRect(0, 0, W, H);
+
+    const PAD = {top:16, right:12, bottom:36, left:44};
+    const cW = W - PAD.left - PAD.right;
+    const cH = H - PAD.top - PAD.bottom;
+    const labels = data.labels || [];
+    const ds = data.datasets[0] || {};
+    const values = ds.data || [];
+    if(!values.length) return;
+
+    const maxVal = Math.max(...values, 1);
+    const minVal = 0;
+    const range = maxVal - minVal || 1;
+
+    // grid lines
+    ctx.strokeStyle = 'rgba(0,0,0,.04)';
+    ctx.lineWidth = 1;
+    for(let i=0;i<=4;i++){
+      const y = PAD.top + cH - (i/4)*cH;
+      ctx.beginPath(); ctx.moveTo(PAD.left, y); ctx.lineTo(PAD.left+cW, y); ctx.stroke();
+      const val = Math.round((i/4)*maxVal);
+      ctx.fillStyle = '#B09080';
+      ctx.font = '10px Jost, sans-serif';
+      ctx.textAlign = 'right';
+      ctx.fillText(val > 999 ? (val/1000).toFixed(1)+'k' : val, PAD.left-4, y+3);
+    }
+
+    if(type === 'bar'){
+      const bW = Math.max(4, (cW / labels.length) * 0.55);
+      labels.forEach((lbl, i) => {
+        const x = PAD.left + (i+0.5) * (cW / labels.length);
+        const v = values[i] || 0;
+        const bH = (v / range) * cH;
+        const y = PAD.top + cH - bH;
+        // bar fill
+        const bg = Array.isArray(ds.backgroundColor) ? ds.backgroundColor[i] : (ds.backgroundColor || 'rgba(193,83,58,.25)');
+        const bc = Array.isArray(ds.borderColor) ? ds.borderColor[i] : (ds.borderColor || '#C1533A');
+        ctx.fillStyle = bg;
+        ctx.strokeStyle = bc;
+        ctx.lineWidth = 1.5;
+        const radius = 4;
+        ctx.beginPath();
+        ctx.moveTo(x - bW/2 + radius, y);
+        ctx.lineTo(x + bW/2 - radius, y);
+        ctx.arcTo(x + bW/2, y, x + bW/2, y + radius, radius);
+        ctx.lineTo(x + bW/2, y + bH);
+        ctx.lineTo(x - bW/2, y + bH);
+        ctx.arcTo(x - bW/2, y, x - bW/2 + radius, y, radius);
+        ctx.closePath();
+        ctx.fill(); ctx.stroke();
+        // label
+        ctx.fillStyle = '#B09080';
+        ctx.font = '9px Jost, sans-serif';
+        ctx.textAlign = 'center';
+        const shortLbl = lbl.length > 8 ? lbl.slice(0,7)+'…' : lbl;
+        ctx.fillText(shortLbl, x, H - PAD.bottom + 14);
+      });
+    }
+
+    if(type === 'line'){
+      const allDs = data.datasets || [];
+      allDs.forEach(ds2 => {
+        const vals2 = ds2.data || [];
+        const color = ds2.borderColor || '#C1533A';
+        const isDash = ds2.borderDash;
+        ctx.strokeStyle = color;
+        ctx.lineWidth = ds2.borderWidth || 2;
+        if(isDash) ctx.setLineDash(isDash); else ctx.setLineDash([]);
+        ctx.beginPath();
+        vals2.forEach((v,i)=>{
+          const x = PAD.left + (i/(vals2.length-1||1))*cW;
+          const y = PAD.top + cH - ((v-minVal)/range)*cH;
+          i===0 ? ctx.moveTo(x,y) : ctx.lineTo(x,y);
+        });
+        ctx.stroke();
+        ctx.setLineDash([]);
+        // fill
+        if(ds2.fill && ds2.backgroundColor){
+          ctx.fillStyle = ds2.backgroundColor;
+          ctx.lineTo(PAD.left+cW, PAD.top+cH);
+          ctx.lineTo(PAD.left, PAD.top+cH);
+          ctx.closePath(); ctx.fill();
+        }
+        // dots
+        if(ds2.pointRadius){
+          vals2.forEach((v,i)=>{
+            const x = PAD.left + (i/(vals2.length-1||1))*cW;
+            const y = PAD.top + cH - ((v-minVal)/range)*cH;
+            ctx.beginPath();
+            ctx.arc(x, y, ds2.pointRadius, 0, Math.PI*2);
+            ctx.fillStyle = ds2.pointBackgroundColor || color;
+            ctx.fill();
+          });
+        }
+      });
+      // x labels
+      labels.forEach((lbl, i)=>{
+        const x = PAD.left + (i/(labels.length-1||1))*cW;
+        ctx.fillStyle = '#B09080';
+        ctx.font = '9px Jost, sans-serif';
+        ctx.textAlign = 'center';
+        ctx.fillText(lbl, x, H - PAD.bottom + 14);
+      });
+    }
+    return {destroy:()=>{ctx.clearRect(0,0,W,H);}};
+  }
+  function ChartCtor(canvas, config){ return drawChart(canvas, config); }
+  return ChartCtor;
+})();
+
+setupDate();
+renderHome();
+</script>
+</body>
+</html>
